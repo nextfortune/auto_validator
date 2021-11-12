@@ -1,0 +1,15 @@
+great_expectations:
+  #init -> everything is New, 
+  #edit_suite -> only edit suite for new expectations
+  #check -> only run checkpoints
+  usage: init
+  datasource_name: test_yaml_source_final                #Name of your datasource
+  datasource_path: /home/sid/projects/ge_test/data       #Path to the folder where you save your data
+  example_file_name: yellow_tripdata_sample_2019-02.csv  #The file name to make a expectation
+  expectation_suite_name: test_yaml_suite_final          #Name of your expectations suite
+  testing_file_pattern: yellow_tripdata_sample_*.csv     #The file name pattern which your want to test
+  #expectation rules
+  rules:
+    ignored_columns: [] #columns to skip
+    excluded_expectations: [] #not include method
+    primary_key: [] #unique column list
