@@ -3,13 +3,29 @@ great_expectations:
   #edit_suite -> only edit suite for new expectations
   #check -> only run checkpoints
   usage: init
-  datasource_name: test_yaml_source_final                #Name of your datasource
+  datasource_name: test_auto_add_rules                #Name of your datasource
   datasource_path: /home/sid/projects/ge_test/data       #Path to the folder where you save your data
-  example_file_name: yellow_tripdata_sample_2019-02.csv  #The file name to make a expectation
-  expectation_suite_name: test_yaml_suite_final          #Name of your expectations suite
+  example_file_name: yellow_tripdata_sample_2019-01.csv  #The file name to make a expectation
+  expectation_suite_name: test_auto_add_rules_suite          #Name of your expectations suite
   testing_file_pattern: yellow_tripdata_sample_*.csv     #The file name pattern which your want to test
   #expectation rules
   rules:
     ignored_columns: [] #columns to skip
     excluded_expectations: [] #not include method
     primary_key: [] #unique column list
+  #addvanced editing on expectations
+  edit_columns:
+    vendor_id: #column name (if no header _cx x is column number)
+      expect_column_values_to_be_between: #rule tag
+        #rule setting
+        min_value: 1
+        max_value: 10
+      expect_column_most_common_value_to_be_in_set: 
+        value_set: [0,2,5]
+    passenger_count: 
+      expect_column_values_to_be_between: 
+        min_value: 1
+        max_value: 10
+      expect_column_most_common_value_to_be_in_set: 
+        value_set: [1,2,3]
+  #more rules details at https://legacy.docs.greatexpectations.io/en/stable/autoapi/great_expectations/expectations/index.html

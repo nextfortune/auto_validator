@@ -27,7 +27,7 @@ with open(args.yml_file, 'r') as stream:
 
 class MyYaml():
     def __init__(self, x):
-        with open("all_in_one.yml", 'r') as stream:
+        with open(args.yml_file, 'r') as stream:
             parsed_yaml=yaml.safe_load(stream)
         
         for key, value in parsed_yaml[x].items():
@@ -68,7 +68,7 @@ data_connectors:
         data_connector_name="default_inferred_data_connector_name",
         data_asset_name=great_expectations.example_file_name,
         limit=1000,
-        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": True, "inferSchema":True}},
+        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": great_expectations.file_with_header, "inferSchema":True}},
     )
 
     if great_expectations.usage == "init":
@@ -79,7 +79,7 @@ data_connectors:
     )
     # NOTE: The following assertion is only for testing and can be ignored by users.
     assert isinstance(validator, Validator)
-
+    
     # Profile the data with the UserConfigurableProfiler and save resulting ExpectationSuite
     profiler = UserConfigurableProfiler(
         profile_dataset=validator,
@@ -92,6 +92,14 @@ data_connectors:
         value_set_threshold="MANY",
     )
     suite = profiler.build_suite()
+
+    #check advanced tags
+    if hasattr(great_expectations, 'edit_columns'):
+        #set advanced tags as customerize setting
+        for key, value in great_expectations.edit_columns.items():
+            for k,v in value.items():
+                getattr(validator, k)(column=key, **v)
+
     validator.save_expectation_suite(discard_failed_expectations=False)
 
     # Create first checkpoint on example file
@@ -110,7 +118,7 @@ validations:
       batch_spec_passthrough: 
         reader_method: csv
         reader_options: 
-          header: True
+          header: {great_expectations.file_with_header}
           inferSchema: True
     expectation_suite_name: {great_expectations.expectation_suite_name }
     """
@@ -151,7 +159,7 @@ for test_file in list_file:
         batch_spec_passthrough: 
           reader_method: csv
           reader_options: 
-            header: True
+            header: {great_expectations.file_with_header}
             inferSchema: True
       expectation_suite_name: {great_expectations.expectation_suite_name }
   """
