@@ -30,6 +30,11 @@ Great-Expectations Usage
     ```
     great_expectations --v3-api suite delete <YOUR_DATA_SOURCE_NAME>
     ```
+- Run GE with Yaml
+    ```
+    python3 execute_ge.py -f <YOUR_YAML_FILE>
+    ```
+    <YOUR_YAML_FILE> example: /home/user/project/example.yml
 
 ## Yaml Descriptions
 - usage:
@@ -43,7 +48,7 @@ Great-Expectations Usage
     * True:  file with header
     * False: file without header
 - expectation_suite_name: <span style="color:orange"><YOUR_SUITE_NAME></span>
-- testing_file_pattern: <span style="color:orange"><YOUR_TESTING_FILE_NAME></span>
+- testing_file_pattern: <span style="color:orange"><YOUR_TESTING_FILE_PATTERN></span>
 - rules:
     * ignored_columns: A Columns List not to check in suite
     * excluded_expectations: A Rule List not to include in suite
