@@ -34,21 +34,21 @@ Great-Expectations Usage
     ```
     python3 execute_ge.py -f <YOUR_YAML_FILE>
     ```
-    <span style="color:orange"><YOUR_YAML_FILE></span> example: /home/user/project/example.yml
+    `<YOUR_YAML_FILE>` example: /home/user/project/example.yml
 
 ## Yaml Descriptions
 - usage:
     * init: Start everything new
     * edit_suite: Only edit existing suite for new rule
     * check: Only run checkpoints 
-- datasource_name: <span style="color:orange"><YOUR_DATASOURCE_NAME></span>
-- datasource_path: <span style="color:orange"><YOUR_DATASOURCE_PATH></span>
-- example_file_name: <span style="color:orange"><YOUR_EXAMPLE_FILE_NAME></span>
+- datasource_name: `<YOUR_DATASOURCE_NAME>`
+- datasource_path: `<YOUR_DATASOURCE_PATH>`
+- example_file_name: `<YOUR_EXAMPLE_FILE_NAME>`
 - file_with_header: 
     * True:  file with header
     * False: file without header
-- expectation_suite_name: <span style="color:orange"><YOUR_SUITE_NAME></span>
-- testing_file_pattern: <span style="color:orange"><YOUR_TESTING_FILE_PATTERN></span>
+- expectation_suite_name: `<YOUR_SUITE_NAME>`
+- testing_file_pattern: `<YOUR_TESTING_FILE_PATTERN>`
 - rules:
     * ignored_columns: A Columns List not to check in suite
     * excluded_expectations: A Rule List not to include in suite
