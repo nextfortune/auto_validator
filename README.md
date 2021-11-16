@@ -16,7 +16,7 @@ Great-Expectations Usage
     ```
     great_expectations --v3-api datasource list
     ```
-    remove "--v3-api" to see more details of datasource
+    remove **--v3-api** to see more details of datasource
 - Delete Datasource of GE
     ```
     great_expectations --v3-api datasource delete <YOUR_DATA_SOURCE_NAME>
@@ -25,7 +25,7 @@ Great-Expectations Usage
     ```
     great_expectations --v3-api suite list
     ```
-    remove "--v3-api" to see more details of datasource
+    remove **--v3-api** to see more details of datasource
 - Delete Suite of GE
     ```
     great_expectations --v3-api suite delete <YOUR_DATA_SOURCE_NAME>
