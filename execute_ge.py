@@ -98,7 +98,10 @@ data_connectors:
         #set advanced tags as customerize setting
         for key, value in great_expectation.edit_columns.items():
             for k,v in value.items():
-                getattr(validator, k)(column=key, **v)
+                if key == 'table':
+                    getattr(validator, k)(**v)
+                else:
+                    getattr(validator, k)(column=key, **v)
 
     validator.save_expectation_suite(discard_failed_expectations=False)
 
