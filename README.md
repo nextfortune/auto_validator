@@ -34,7 +34,7 @@ Great-Expectations Usage
     ```
     python3 execute_ge.py -f <YOUR_YAML_FILE>
     ```
-    <YOUR_YAML_FILE> example: /home/user/project/example.yml
+    <span style="color:orange"><YOUR_YAML_FILE></span> example: /home/user/project/example.yml
 
 ## Yaml Descriptions
 - usage:
