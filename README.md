@@ -5,20 +5,31 @@ Great-Expectations Usage
   - [Table of Contents](#Table-of-Contents)
   - [CLI Commands](#CLI-Commands)
   - [Yaml Descriptions](#Yaml-Descriptions)
+  - [Example YAML](#Example-YAML)
 
 ## CLI Commands
 - Init GE projects
-```great_expectations --v3-api init```
+    ```
+    great_expectations --v3-api init
+    ```
 - List Datasource of GE
-```great_expectations --v3-api datasource list```
-remove "--v3-api" to see more details of datasource
+    ```
+    great_expectations --v3-api datasource list
+    ```
+    remove "--v3-api" to see more details of datasource
 - Delete Datasource of GE
-```great_expectations --v3-api datasource delete <YOUR_DATA_SOURCE_NAME>```
+    ```
+    great_expectations --v3-api datasource delete <YOUR_DATA_SOURCE_NAME>
+    ```
 - List Suite of GE
-```great_expectations --v3-api suite list```
-remove "--v3-api" to see more details of datasource
+    ```
+    great_expectations --v3-api suite list
+    ```
+    remove "--v3-api" to see more details of datasource
 - Delete Suite of GE
-```great_expectations --v3-api suite delete <YOUR_DATA_SOURCE_NAME>```
+    ```
+    great_expectations --v3-api suite delete <YOUR_DATA_SOURCE_NAME>
+    ```
 
 ## Yaml Descriptions
 - usage:
