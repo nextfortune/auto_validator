@@ -1,0 +1,66 @@
+great_expectation:
+  #init -> everything is New, 
+  #edit_suite -> only edit suite for new expectations
+  #check -> only run checkpoints
+  usage: edit_suite
+  datasource_name: example_use                #Name of your datasource
+  datasource_path: /home/sid/projects/ge_test/data       #Path to the folder where you save your data
+  example_file_name: yellow_tripdata_sample_2019-01.csv  #The file name to make a expectation
+  file_with_header: True                              #csv with or without header
+  expectation_suite_name: example_suite_with_header          #Name of your expectations suite
+  testing_file_pattern: yellow_tripdata_sample_*.csv     #The file name pattern which your want to test
+  #expectation rules
+  rules:
+    ignored_columns: [
+      # vendor_id, 
+      # pickup_datetime, 
+      # dropoff_datetime, 
+      # passenger_count, 
+      # trip_distance, 
+      # rate_code_id, 
+      # store_and_fwd_flag, 
+      # pickup_location_id, 
+      # dropoff_location_id, 
+      # payment_type, 
+      # fare_amount, 
+      # extra, 
+      # mta_tax, 
+      # tip_amount, 
+      tolls_amount, 
+      improvement_surcharge, 
+      total_amount, 
+      congestion_surcharge
+    ] #skip checking tolls_amount, improvement_surcharge, total_amount, congestion_surcharge
+    excluded_expectations: [
+      # expect_table_columns_to_match_ordered_list,
+      # expect_table_row_count_to_be_between,
+      # expect_column_min_to_be_between,
+      # expect_column_max_to_be_between,
+      expect_column_mean_to_be_between,
+      expect_column_median_to_be_between,
+      expect_column_quantile_values_to_be_between,
+      # expect_column_values_to_be_in_set,
+      # expect_column_values_to_not_be_null,
+      # expect_column_values_to_be_in_type_list,
+      # expect_column_values_to_not_be_null,
+      expect_column_proportion_of_unique_values_to_be_between
+    ] #skip checking rule column_proportion_of_unique_values
+    primary_key: [
+      # vendor_id,
+    ] #no primary key
+  
+  #advanced columns setting
+  edit_columns:
+    vendor_id: #add rules to vendor_id column
+      expect_column_values_to_be_between:  #check values in range(1,10)
+        min_value: 1
+        max_value: 5
+      expect_column_most_common_value_to_be_in_set: #check most common value in [0,2,5]
+        value_set: [2,3]
+    passenger_count:  #add rules to passenger_count column
+      expect_column_values_to_be_between: #check values in range(1,20)
+        min_value: 0
+        max_value: 20
+      expect_column_most_common_value_to_be_in_set: #check most common value in [1,2,3]
+        value_set: [1,3]
+  #more rules details at https://legacy.docs.greatexpectations.io/en/stable/autoapi/great_expectations/expectations/index.html

@@ -36,20 +36,20 @@ class MyYaml():
 for key, value in parsed_yaml.items():
     exec(key + '=MyYaml(key)')
 
-for key, value in great_expectations.rules.items():
+for key, value in great_expectation.rules.items():
     # print(key)
     exec(key + '=value')
 # First configure a new Datasource and add to DataContext
-if great_expectations.usage != 'check':
+if great_expectation.usage != 'check':
     datasource_yaml = f"""
-name: {great_expectations.datasource_name}
+name: {great_expectation.datasource_name}
 class_name: Datasource
 execution_engine:
   class_name: SparkDFExecutionEngine
 data_connectors:
   default_inferred_data_connector_name:
     class_name: InferredAssetFilesystemDataConnector
-    base_directory: {great_expectations.datasource_path}
+    base_directory: {great_expectation.datasource_path}
     default_regex:
       group_names:
         - data_asset_name
@@ -64,18 +64,18 @@ data_connectors:
 
     # Get Validator by creating ExpectationSuite and passing in BatchRequest
     batch_request = BatchRequest(
-        datasource_name=great_expectations.datasource_name,
+        datasource_name=great_expectation.datasource_name,
         data_connector_name="default_inferred_data_connector_name",
-        data_asset_name=great_expectations.example_file_name,
+        data_asset_name=great_expectation.example_file_name,
         limit=1000,
-        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": great_expectations.file_with_header, "inferSchema":True}},
+        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": great_expectation.file_with_header, "inferSchema":True}},
     )
 
-    if great_expectations.usage == "init":
-        context.create_expectation_suite(expectation_suite_name=great_expectations.expectation_suite_name)
+    if great_expectation.usage == "init":
+        context.create_expectation_suite(expectation_suite_name=great_expectation.expectation_suite_name)
     validator = context.get_validator(
         batch_request=batch_request,
-        expectation_suite_name=great_expectations.expectation_suite_name,
+        expectation_suite_name=great_expectation.expectation_suite_name,
     )
     # NOTE: The following assertion is only for testing and can be ignored by users.
     assert isinstance(validator, Validator)
@@ -94,9 +94,9 @@ data_connectors:
     suite = profiler.build_suite()
 
     #check advanced tags
-    if hasattr(great_expectations, 'edit_columns'):
+    if hasattr(great_expectation, 'edit_columns'):
         #set advanced tags as customerize setting
-        for key, value in great_expectations.edit_columns.items():
+        for key, value in great_expectation.edit_columns.items():
             for k,v in value.items():
                 getattr(validator, k)(column=key, **v)
 
@@ -110,17 +110,17 @@ class_name: SimpleCheckpoint
 run_name_template: "%Y%m%d-%H%M%S-check-suite"
 validations:
   - batch_request:
-      datasource_name: {great_expectations.datasource_name }
+      datasource_name: {great_expectation.datasource_name }
       data_connector_name: default_inferred_data_connector_name
-      data_asset_name: {great_expectations.example_file_name }
+      data_asset_name: {great_expectation.example_file_name }
       data_connector_query:
         index: -1
       batch_spec_passthrough: 
         reader_method: csv
         reader_options: 
-          header: {great_expectations.file_with_header}
+          header: {great_expectation.file_with_header}
           inferSchema: True
-    expectation_suite_name: {great_expectations.expectation_suite_name }
+    expectation_suite_name: {great_expectation.expectation_suite_name }
     """
 
     my_checkpoint_config = yaml.load(my_checkpoint_config)
@@ -137,8 +137,8 @@ def files(path):
             yield file
 
 list_file=[]
-for file in files(great_expectations.datasource_path):
-    if fnmatch.fnmatch(file, great_expectations.testing_file_pattern):
+for file in files(great_expectation.datasource_path):
+    if fnmatch.fnmatch(file, great_expectation.testing_file_pattern):
         list_file.append(file)
 
 for test_file in list_file:
@@ -151,7 +151,7 @@ for test_file in list_file:
   run_name_template: "%Y%m%d-%H%M%S-check-{testing_file_name }"
   validations:
     - batch_request:
-        datasource_name: {great_expectations.datasource_name }
+        datasource_name: {great_expectation.datasource_name }
         data_connector_name: default_inferred_data_connector_name
         data_asset_name: {testing_file_name }
         data_connector_query:
@@ -159,9 +159,9 @@ for test_file in list_file:
         batch_spec_passthrough: 
           reader_method: csv
           reader_options: 
-            header: {great_expectations.file_with_header}
+            header: {great_expectation.file_with_header}
             inferSchema: True
-      expectation_suite_name: {great_expectations.expectation_suite_name }
+      expectation_suite_name: {great_expectation.expectation_suite_name }
   """
   my_new_checkpoint_config = yaml.load(my_new_checkpoint_config)
 

@@ -1,21 +1,28 @@
-great_expectations:
-  #init -> everything is New, 
-  #edit_suite -> only edit suite for new expectations
+great_expectation:
+  #init -> everything is New
+  #edit_suite -> only edit exist suite for new rule
   #check -> only run checkpoints
-  usage: init
-  datasource_name: test_auto_add_rules                #Name of your datasource
-  datasource_path: /home/sid/projects/ge_test/data       #Path to the folder where you save your data
-  example_file_name: yellow_tripdata_sample_2019-01.csv  #The file name to make a expectation
-  expectation_suite_name: test_auto_add_rules_suite          #Name of your expectations suite
-  testing_file_pattern: yellow_tripdata_sample_*.csv     #The file name pattern which your want to test
+  usage: init or edit or check
+  datasource_name: YOUR_DATASOURCE_NAME            #ex: test1
+  datasource_path: YOUR_DATA_PATH                  #ex: /home/user/projects/data
+  example_file_name: YOUR_EXAMPLE_FILE_NAME        #ex: aaa_bbb.csv
+  file_with_header: True or False                  #True with header, False without header
+  expectation_suite_name: YOUR_SUITE_NAME          #ex: suite_aaa_bbb 不能重複
+  testing_file_pattern: YOUR_TESTING_FILE_PATTERN  #ex: aaa_*.csv
   #expectation rules
   rules:
     ignored_columns: [] #columns to skip
     excluded_expectations: [] #not include method
     primary_key: [] #unique column list
-  #addvanced editing on expectations
+  #advanced editing on expectations
   edit_columns:
-    vendor_id: #column name (if no header _cx x is column number)
+    #example advanced editting on table
+    table: 
+      expect_table_row_count_to_be_between: 
+        min_value: 1
+        max_value: 10
+    #example advanced editting on column
+    vendor_id: #column name (if no header _cx x is column number -1)
       expect_column_values_to_be_between: #rule tag
         #rule setting
         min_value: 1
