@@ -1,4 +1,5 @@
 import os
+import json
 import fnmatch
 import argparse
 from ruamel import yaml
@@ -86,7 +87,7 @@ data_connectors:
         excluded_expectations=excluded_expectations,
         ignored_columns=ignored_columns,
         not_null_only=False,
-        primary_or_compound_key=primary_key,
+        primary_or_compound_key=None,
         semantic_types_dict=None,
         table_expectations_only=False,
         value_set_threshold="MANY",
@@ -143,7 +144,7 @@ list_file=[]
 for file in files(great_expectation.datasource_path):
     if fnmatch.fnmatch(file, great_expectation.testing_file_pattern):
         list_file.append(file)
-
+result_list=[]
 for test_file in list_file:
   # Create second checkpoint on testing file
   testing_file_name = test_file
@@ -172,7 +173,30 @@ for test_file in list_file:
       **my_new_checkpoint_config, data_context=context,
   )
   new_checkpoint_result = new_checkpoint.run()
+  failed_rules=[]
+  for key, value in new_checkpoint_result['run_results'].items():
+      for k, v in value.items():
+          if k == 'validation_result':
+              statistic = v['statistics']
+            
+              for i in range(len(v['results'])):
+                #   print(i,": ", v['results'][i])
+                  if v['results'][i]['success'] is False:
+                      failed = {v['results'][i]['expectation_config']['kwargs']['column'] : v['results'][i]['expectation_config']['expectation_type']}
+                      failed_rules.append(failed)
+  validate_dict={
+    "pattern": great_expectation.testing_file_pattern,
+    "name": testing_file_name,
+    "status": str(new_checkpoint_result["success"]),
+    "failed_rules": failed_rules,
+    "statistics": statistic,
+  }
+  result_list.append(validate_dict)
   assert new_checkpoint_result.run_results
 
+json_string = json.dumps(result_list)
+print(json_string)
+    # sys.exit("Validation with Great Expectations failed.")
+    # raise AirflowException("Validation with Great Expectations failed.")
 #save result to localsite html
 context.build_data_docs()
