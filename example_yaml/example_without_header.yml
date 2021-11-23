@@ -23,33 +23,35 @@ great_expectation:
       # _c8, 
       # _c9, 
       _c10, 
-      # _c11, 
-      # _c12, 
-      # _c13, 
-      # _c14, 
-      # _c15, 
-      # _c16, 
-      # _c17
-    ] #skip checking columns 6 and 10
+      _c11, 
+      _c12, 
+      _c13, 
+      _c14, 
+      _c15, 
+      _c16, 
+      _c17
+    ] #skip checking columns 6, 10~17
     excluded_expectations: [
       # expect_table_columns_to_match_ordered_list,
       # expect_table_row_count_to_be_between,
-      # expect_column_min_to_be_between,
-      # expect_column_max_to_be_between,
+      expect_column_min_to_be_between,
+      expect_column_max_to_be_between,
       expect_column_mean_to_be_between,
       expect_column_median_to_be_between,
-      # expect_column_quantile_values_to_be_between,
+      expect_column_quantile_values_to_be_between,
       # expect_column_values_to_be_in_set,
       # expect_column_values_to_not_be_null,
       # expect_column_values_to_be_in_type_list,
       # expect_column_values_to_not_be_null,
-      # expect_column_proportion_of_unique_values_to_be_between,
-    ] #skip checking mean and median
-    primary_key: [] #no primary key
+      expect_column_proportion_of_unique_values_to_be_between,
+    ] #skip checking mean, median, min, max,  proportion of unique values, quantile values
   
   #advanced columns setting
   edit_columns:
-    _c1: #add rules to column 1
+    _c0: #add rules to column 0
+      expect_column_values_to_be_unique: #check column unique
+        catch_exceptions: True
+    _c2: #add rules to column 2
       expect_column_values_to_match_strftime_format: #check datetime str format
         strftime_format: "%Y-%m-%d %H:%M:%S"
     _c12: #add rules to column 12

@@ -13,7 +13,6 @@ great_expectation:
   rules:
     ignored_columns: [] #columns to skip
     excluded_expectations: [] #not include method
-    primary_key: [] #unique column list
   #advanced editing on expectations
   edit_columns:
     #example advanced editting on table
