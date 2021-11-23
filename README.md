@@ -52,7 +52,6 @@ Great-Expectations Usage
 - rules:
     * ignored_columns: A Columns List not to check in suite
     * excluded_expectations: A Rule List not to include in suite
-    * primary_key: A Columns List that should be unique in value
 - edit_columns:
     * table: add table rules
         - Rule name 
@@ -111,11 +110,12 @@ Great-Expectations Usage
           # expect_column_values_to_not_be_null,
           # expect_column_proportion_of_unique_values_to_be_between,
         ]
-        #no primary key
-        primary_key: []
 
       #advanced columns setting
       edit_columns:
+        _c0: #add rules to column 0
+          expect_column_values_to_be_unique: #check column unique
+            catch_exceptions: True
         _c1: #add rules to column 1
           expect_column_values_to_match_strftime_format: #check datetime str format
             strftime_format: "%Y-%m-%d %H:%M:%S"
@@ -173,10 +173,6 @@ Great-Expectations Usage
           # expect_column_values_to_be_in_type_list,
           # expect_column_values_to_not_be_null,
           expect_column_proportion_of_unique_values_to_be_between
-        ]
-        #vendor_id as  primary key
-        primary_key: [
-          vendor_id,
         ]
 
       #advanced columns setting
