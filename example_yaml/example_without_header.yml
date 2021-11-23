@@ -49,8 +49,9 @@ great_expectation:
   #advanced columns setting
   edit_columns:
     _c0: #add rules to column 0
-      expect_column_values_to_be_unique: #check column unique
-        catch_exceptions: True
+      expect_column_proportion_of_unique_values_to_be_between: #ckeck column unique proportion (set min_value and max_value as 1 to check all unique)
+        min_value: 1
+        max_value: 1
     _c2: #add rules to column 2
       expect_column_values_to_match_strftime_format: #check datetime str format
         strftime_format: "%Y-%m-%d %H:%M:%S"
