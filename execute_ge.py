@@ -7,10 +7,9 @@ from ruamel import yaml
 import great_expectations as ge
 from great_expectations.checkpoint import SimpleCheckpoint
 from great_expectations.core.batch import BatchRequest
-from great_expectations.profile.user_configurable_profiler import (
-    UserConfigurableProfiler,
-)
+from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
 from great_expectations.validator.validator import Validator
+from great_expectations.exceptions.exceptions import DataContextError
 
 context = ge.get_context()
 # NOTE: The following assertion is only for testing and can be ignored by users.
@@ -19,12 +18,6 @@ assert context
 parser = argparse.ArgumentParser(description='YAML file')
 parser.add_argument('-f', dest='yml_file', type=str, help='Name of yaml file')
 args = parser.parse_args()
-#Read Yaml Setting
-with open(args.yml_file, 'r') as stream:
-    try:
-        parsed_yaml=yaml.safe_load(stream)
-    except yaml.YAMLError as exc:
-        print(exc)
 
 class MyYaml():
     def __init__(self, x):
@@ -34,23 +27,27 @@ class MyYaml():
         for key, value in parsed_yaml[x].items():
             setattr(self, key, value)
 
-for key, value in parsed_yaml.items():
-    exec(key + '=MyYaml(key)')
 
-for key, value in great_expectation.rules.items():
-    # print(key)
-    exec(key + '=value')
-# First configure a new Datasource and add to DataContext
-if great_expectation.usage != 'check':
+def list_unvalidated_files(configuration_class):
+    unvalidated_files=[]
+    for file in os.listdir(configuration_class.datasource_path):
+        if os.path.isfile(os.path.join(configuration_class.datasource_path, file)):
+            if fnmatch.fnmatch(file, configuration_class.testing_file_pattern):
+                unvalidated_files.append(file)
+    return unvalidated_files
+
+
+def execute_datasource(configuration_class):
+    # First configure a new Datasource and add to DataContext
     datasource_yaml = f"""
-name: {great_expectation.datasource_name}
+name: {configuration_class.datasource_name}
 class_name: Datasource
 execution_engine:
   class_name: SparkDFExecutionEngine
 data_connectors:
   default_inferred_data_connector_name:
     class_name: InferredAssetFilesystemDataConnector
-    base_directory: {great_expectation.datasource_path}
+    base_directory: {configuration_class.datasource_path}
     default_regex:
       group_names:
         - data_asset_name
@@ -65,22 +62,32 @@ data_connectors:
 
     # Get Validator by creating ExpectationSuite and passing in BatchRequest
     batch_request = BatchRequest(
-        datasource_name=great_expectation.datasource_name,
+        datasource_name=configuration_class.datasource_name,
         data_connector_name="default_inferred_data_connector_name",
-        data_asset_name=great_expectation.example_file_name,
+        data_asset_name=configuration_class.example_file_name,
         limit=1000,
-        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": great_expectation.file_with_header, "inferSchema":True}},
+        batch_spec_passthrough={"reader_method": "csv", "reader_options": {"header": configuration_class.file_with_header, "inferSchema":True}},
     )
+    return batch_request
 
-    if great_expectation.usage == "init":
-        context.create_expectation_suite(expectation_suite_name=great_expectation.expectation_suite_name)
+
+def execute_suite(configuration_class, batch_request: BatchRequest=None):
+    if configuration_class.usage == "init":
+        try:
+            context.create_expectation_suite(expectation_suite_name=configuration_class.expectation_suite_name)
+        except DataContextError:
+            pass
+
     validator = context.get_validator(
         batch_request=batch_request,
-        expectation_suite_name=great_expectation.expectation_suite_name,
+        expectation_suite_name=configuration_class.expectation_suite_name,
     )
     # NOTE: The following assertion is only for testing and can be ignored by users.
     assert isinstance(validator, Validator)
-    
+
+    for key, value in configuration_class.rules.items():
+        # print(key)
+        exec(key + '=value')
     # Profile the data with the UserConfigurableProfiler and save resulting ExpectationSuite
     profiler = UserConfigurableProfiler(
         profile_dataset=validator,
@@ -95,9 +102,9 @@ data_connectors:
     suite = profiler.build_suite()
 
     #check advanced tags
-    if hasattr(great_expectation, 'edit_columns'):
+    if hasattr(configuration_class, 'edit_columns'):
         #set advanced tags as customerize setting
-        for key, value in great_expectation.edit_columns.items():
+        for key, value in configuration_class.edit_columns.items():
             for k,v in value.items():
                 if key == 'table':
                     getattr(validator, k)(**v)
@@ -114,17 +121,17 @@ class_name: SimpleCheckpoint
 run_name_template: "%Y%m%d-%H%M%S-check-suite"
 validations:
   - batch_request:
-      datasource_name: {great_expectation.datasource_name }
+      datasource_name: {configuration_class.datasource_name }
       data_connector_name: default_inferred_data_connector_name
-      data_asset_name: {great_expectation.example_file_name }
+      data_asset_name: {configuration_class.example_file_name }
       data_connector_query:
         index: -1
       batch_spec_passthrough: 
         reader_method: csv
         reader_options: 
-          header: {great_expectation.file_with_header}
+          header: {configuration_class.file_with_header}
           inferSchema: True
-    expectation_suite_name: {great_expectation.expectation_suite_name }
+    expectation_suite_name: {configuration_class.expectation_suite_name }
     """
 
     my_checkpoint_config = yaml.load(my_checkpoint_config)
@@ -135,68 +142,82 @@ validations:
     checkpoint_result = checkpoint.run()
     assert checkpoint_result.run_results
 
-def files(path):
-    for file in os.listdir(path):
-        if os.path.isfile(os.path.join(path, file)):
-            yield file
 
-list_file=[]
-for file in files(great_expectation.datasource_path):
-    if fnmatch.fnmatch(file, great_expectation.testing_file_pattern):
-        list_file.append(file)
-result_list=[]
-for test_file in list_file:
-  # Create second checkpoint on testing file
-  testing_file_name = test_file
-  my_new_checkpoint_config = f"""
+def execute_checkpoint(configuration_class, file: str):
+    # Create second checkpoint on testing file
+    my_new_checkpoint_config = f"""
   name: checkpoint on testing file
   config_version: 1.0
   class_name: SimpleCheckpoint
-  run_name_template: "%Y%m%d-%H%M%S-check-{testing_file_name }"
+  run_name_template: "%Y%m%d-%H%M%S-check-{ file }"
   validations:
     - batch_request:
-        datasource_name: {great_expectation.datasource_name }
+        datasource_name: { configuration_class.datasource_name }
         data_connector_name: default_inferred_data_connector_name
-        data_asset_name: {testing_file_name }
+        data_asset_name: { file }
         data_connector_query:
           index: -1
         batch_spec_passthrough: 
           reader_method: csv
           reader_options: 
-            header: {great_expectation.file_with_header}
+            header: { configuration_class.file_with_header }
             inferSchema: True
-      expectation_suite_name: {great_expectation.expectation_suite_name }
+      expectation_suite_name: { configuration_class.expectation_suite_name }
   """
-  my_new_checkpoint_config = yaml.load(my_new_checkpoint_config)
+    my_new_checkpoint_config = yaml.load(my_new_checkpoint_config)
 
-  new_checkpoint = SimpleCheckpoint(
-      **my_new_checkpoint_config, data_context=context,
-  )
-  new_checkpoint_result = new_checkpoint.run()
-  failed_rules=[]
-  for key, value in new_checkpoint_result['run_results'].items():
-      for k, v in value.items():
-          if k == 'validation_result':
-              statistic = v['statistics']
-            
-              for i in range(len(v['results'])):
-                #   print(i,": ", v['results'][i])
-                  if v['results'][i]['success'] is False:
-                      failed = {v['results'][i]['expectation_config']['kwargs']['column'] : v['results'][i]['expectation_config']['expectation_type']}
-                      failed_rules.append(failed)
-  validate_dict={
-    "pattern": great_expectation.testing_file_pattern,
-    "name": testing_file_name,
-    "status": str(new_checkpoint_result["success"]),
-    "failed_rules": failed_rules,
-    "statistics": statistic,
-  }
-  result_list.append(validate_dict)
-  assert new_checkpoint_result.run_results
+    new_checkpoint = SimpleCheckpoint(
+        **my_new_checkpoint_config, data_context=context,
+    )
+    new_checkpoint_result = new_checkpoint.run()
+    failed_rules=[]
+    for key, value in new_checkpoint_result['run_results'].items():
+        for k, v in value.items():
+            if k == 'validation_result':
+                statistic = v['statistics']
+                
+                for i in range(len(v['results'])):
+                    #   print(i,": ", v['results'][i])
+                    if v['results'][i]['success'] is False:
+                        failed = {v['results'][i]['expectation_config']['kwargs']['column'] : v['results'][i]['expectation_config']['expectation_type']}
+                        failed_rules.append(failed)
+    assert new_checkpoint_result.run_results
+    return {
+        "pattern": configuration_class.testing_file_pattern,
+        "name": file,
+        "status": str(new_checkpoint_result["success"]),
+        "failed_rules": failed_rules,
+        "statistics": statistic,
+    }
 
-json_string = json.dumps(result_list)
-print(json_string)
-    # sys.exit("Validation with Great Expectations failed.")
-    # raise AirflowException("Validation with Great Expectations failed.")
-#save result to localsite html
-context.build_data_docs()
+
+def main():
+    #Read Yaml Setting
+    with open(args.yml_file, 'r') as stream:
+        try:
+            parsed_yaml=yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    for key, value in parsed_yaml.items():
+        exec(key + '=MyYaml(key)')
+
+    batch_request = execute_datasource(great_expectation)
+
+    execute_suite(great_expectation, batch_request)
+
+    files = list_unvalidated_files(great_expectation)
+
+    validation_results = []
+    for file in files:
+        validation_results.append(execute_checkpoint(configuration_class, file))
+
+    #save result to localsite html
+    context.build_data_docs()
+
+    json_string = json.dumps(validation_results)
+    print(json_string)
+
+
+if __name__ == "__main__":
+    main()
