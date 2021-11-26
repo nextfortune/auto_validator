@@ -42,6 +42,11 @@ class GreatExpectations:
     #advanced editing on expectations
     edit_columns: str=None
 
+@dataclass
+class Rules:
+    ignored_columns: list=[]
+    excluded_expectations: list=[]
+
 
 def list_unvalidated_files(configuration_class):
     unvalidated_files=[]
@@ -100,14 +105,13 @@ def execute_suite(configuration_class, batch_request: BatchRequest=None):
     # NOTE: The following assertion is only for testing and can be ignored by users.
     assert isinstance(validator, Validator)
 
-    for key, value in configuration_class.rules.items():
-        # print(key)
-        exec(key + '=value')
+    rules = Rules(**configuration_class.rules)
+
     # Profile the data with the UserConfigurableProfiler and save resulting ExpectationSuite
     profiler = UserConfigurableProfiler(
         profile_dataset=validator,
-        excluded_expectations=excluded_expectations,
-        ignored_columns=ignored_columns,
+        excluded_expectations=rules.excluded_expectations,
+        ignored_columns=rules.ignored_columns,
         not_null_only=False,
         primary_or_compound_key=None,
         semantic_types_dict=None,
@@ -226,7 +230,7 @@ def main():
 
     validation_results = []
     for file in files:
-        validation_results.append(execute_checkpoint(configuration_class, file))
+        validation_results.append(execute_checkpoint(great_expectation, file))
 
     #save result to localsite html
     context.build_data_docs()
