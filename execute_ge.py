@@ -3,6 +3,7 @@ import json
 import fnmatch
 import argparse
 from ruamel import yaml
+from dataclasses import dataclass
 
 import great_expectations as ge
 from great_expectations.checkpoint import SimpleCheckpoint
@@ -26,6 +27,20 @@ class MyYaml():
         
         for key, value in parsed_yaml[x].items():
             setattr(self, key, value)
+
+@dataclass
+class GreatExpectations:
+    usage: str=None
+    datasource_name: str=None
+    datasource_path: str=None
+    example_file_name: str=None
+    file_with_header: Tstr=None
+    expectation_suite_name: str=None
+    testing_file_pattern: str=None
+    #expectation rules
+    rules: str=None
+    #advanced editing on expectations
+    edit_columns: str=None
 
 
 def list_unvalidated_files(configuration_class):
@@ -199,8 +214,9 @@ def main():
         except yaml.YAMLError as exc:
             print(exc)
 
-    for key, value in parsed_yaml.items():
-        exec(key + '=MyYaml(key)')
+    great_expectation = GreatExpectations(**parsed_yaml)
+    # for key, value in parsed_yaml.items():
+    #     exec(key + '=MyYaml(key)')
 
     batch_request = execute_datasource(great_expectation)
 
