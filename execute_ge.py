@@ -34,7 +34,7 @@ class GreatExpectations:
     datasource_name: str=None
     datasource_path: str=None
     example_file_name: str=None
-    file_with_header: Tstr=None
+    file_with_header: str=None
     expectation_suite_name: str=None
     testing_file_pattern: str=None
     #expectation rules
@@ -44,8 +44,8 @@ class GreatExpectations:
 
 @dataclass
 class Rules:
-    ignored_columns: list=[]
-    excluded_expectations: list=[]
+    ignored_columns: list=None
+    excluded_expectations: list=None
 
 
 def list_unvalidated_files(configuration_class):
@@ -218,7 +218,7 @@ def main():
         except yaml.YAMLError as exc:
             print(exc)
 
-    great_expectation = GreatExpectations(**parsed_yaml)
+    great_expectation = GreatExpectations(**parsed_yaml["great_expectation"])
     # for key, value in parsed_yaml.items():
     #     exec(key + '=MyYaml(key)')
 
