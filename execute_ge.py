@@ -1,8 +1,9 @@
 import os
+import re
 import json
 import fnmatch
 import argparse
-from ruamel import yaml
+import yaml
 from dataclasses import dataclass
 
 import great_expectations as ge
@@ -121,7 +122,7 @@ def execute_suite(configuration_class, batch_request: BatchRequest=None):
     suite = profiler.build_suite()
 
     #check advanced tags
-    if hasattr(configuration_class, 'edit_columns'):
+    if configuration_class.edit_columns is not None:
         #set advanced tags as customerize setting
         for key, value in configuration_class.edit_columns.items():
             for k,v in value.items():
@@ -137,7 +138,7 @@ def execute_suite(configuration_class, batch_request: BatchRequest=None):
 name: checkpoint on example file
 config_version: 1.0
 class_name: SimpleCheckpoint
-run_name_template: "%Y%m%d-%H%M%S-check-suite"
+run_name_template: "check-suite"
 validations:
   - batch_request:
       datasource_name: {configuration_class.datasource_name }
@@ -164,11 +165,12 @@ validations:
 
 def execute_checkpoint(configuration_class, file: str):
     # Create second checkpoint on testing file
+    versionkey = re.split('[_.]', file)[-2]
     my_new_checkpoint_config = f"""
   name: checkpoint on testing file
   config_version: 1.0
   class_name: SimpleCheckpoint
-  run_name_template: "%Y%m%d-%H%M%S-check-{ file }"
+  run_name_template: "{ versionkey }"
   validations:
     - batch_request:
         datasource_name: { configuration_class.datasource_name }
