@@ -221,18 +221,23 @@ def main():
             print(exc)
 
     great_expectation = GreatExpectations(**parsed_yaml["great_expectation"])
-    # for key, value in parsed_yaml.items():
-    #     exec(key + '=MyYaml(key)')
 
-    batch_request = execute_datasource(great_expectation)
+    if great_expectation.usage == "check":
+        files = list_unvalidated_files(great_expectation)
 
-    execute_suite(great_expectation, batch_request)
+        validation_results = []
+        for file in files:
+            validation_results.append(execute_checkpoint(great_expectation, file))
+    else:
+        batch_request = execute_datasource(great_expectation)
 
-    files = list_unvalidated_files(great_expectation)
+        execute_suite(great_expectation, batch_request)
 
-    validation_results = []
-    for file in files:
-        validation_results.append(execute_checkpoint(great_expectation, file))
+        files = list_unvalidated_files(great_expectation)
+
+        validation_results = []
+        for file in files:
+            validation_results.append(execute_checkpoint(great_expectation, file))
 
     #save result to localsite html
     context.build_data_docs()
