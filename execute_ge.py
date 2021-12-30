@@ -1,3 +1,4 @@
+import time
 import os
 import re
 import json
@@ -5,6 +6,8 @@ import fnmatch
 import argparse
 import yaml
 from dataclasses import dataclass
+from concurrent import futures
+from concurrent.futures import ProcessPoolExecutor
 
 import great_expectations as ge
 from great_expectations.checkpoint import SimpleCheckpoint
@@ -222,22 +225,21 @@ def main():
 
     great_expectation = GreatExpectations(**parsed_yaml["great_expectation"])
 
-    if great_expectation.usage == "check":
-        files = list_unvalidated_files(great_expectation)
-
-        validation_results = []
-        for file in files:
-            validation_results.append(execute_checkpoint(great_expectation, file))
-    else:
+    if great_expectation.usage != "check":
         batch_request = execute_datasource(great_expectation)
 
         execute_suite(great_expectation, batch_request)
 
-        files = list_unvalidated_files(great_expectation)
+    files = list_unvalidated_files(great_expectation)
+    future_list = []
+    validation_results = []
 
-        validation_results = []
+    with ProcessPoolExecutor(max_workers=16) as executor:
         for file in files:
-            validation_results.append(execute_checkpoint(great_expectation, file))
+            future_list.append(executor.submit(execute_checkpoint, great_expectation, file))
+
+        for future in futures.as_completed(future_list):
+            validation_results.append(future.result())
 
     #save result to localsite html
     context.build_data_docs()
