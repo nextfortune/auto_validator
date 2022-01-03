@@ -214,7 +214,6 @@ def execute_checkpoint(configuration_class, file: str):
         "statistics": statistic,
     }
 
-
 def main():
     #Read Yaml Setting
     with open(args.yml_file, 'r') as stream:
@@ -227,26 +226,24 @@ def main():
 
     if great_expectation.usage != "check":
         batch_request = execute_datasource(great_expectation)
-
         execute_suite(great_expectation, batch_request)
 
     files = list_unvalidated_files(great_expectation)
-    future_list = []
+    files = [(great_expectation, file) for file in files]
+
     validation_results = []
 
     with ProcessPoolExecutor(max_workers=16) as executor:
-        for file in files:
-            future_list.append(executor.submit(execute_checkpoint, great_expectation, file))
+        future_list = [executor.submit(execute_checkpoint, data) for data in files]
 
-        for future in futures.as_completed(future_list):
-            validation_results.append(future.result())
+        results = futures.as_completed(future_list)
+        validation_results = [res.result() for res in results]
 
     #save result to localsite html
     context.build_data_docs()
 
     json_string = json.dumps(validation_results)
     print(json_string)
-
 
 if __name__ == "__main__":
     main()
